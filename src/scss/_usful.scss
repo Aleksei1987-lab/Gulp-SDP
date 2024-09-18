@@ -1,0 +1,32 @@
+
+.useful {
+  &__item {
+    grid-column: span 6;
+    display: flex;
+    flex-direction: column;
+    font-size: 0;
+    border-radius: 10px 10px 0 0;
+    background-color: var(--color-f6f6f6);
+  }
+  &__item:last-child {
+    position: absolute;
+    right: -100%;
+  }
+  &__picture {
+    display: inline-block;
+  }
+  &__wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 38px;
+    padding: 30px;
+  }
+  &__descr {
+    line-height: 150%;
+  }
+  &__btn {
+    margin-top: auto;
+  }
+}
