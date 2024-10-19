@@ -143,10 +143,70 @@ const watchFiles = () => {
   watch('./src/resources/**', resources);
 }
 
+/* Build scripts */
+const buildStyles = () => {
+  return src('./src/scss/**/*.scss')
+    .pipe(sass({
+      outputStyle: 'expanded'
+    }).on('error', notify.onError()))
+    .pipe(rename({
+      suffix: '.min'
+    }))
+    .pipe(autoprefixer({
+      cascade: false
+    }))
+    .pipe(cleanCss({
+      level: 2
+    }))
+    .pipe(dest('./app/css'));
+}
+
+const buildScripts = () => {
+	return src('./src/js/main.js')
+		.pipe(webpackStream({
+			mode: 'production',
+			output: {
+				filename: 'main.js',
+			},
+			module: {
+				rules: [{
+					test: /\.m?js$/,
+					exclude: /(node_modules|bower_components)/,
+					use: {
+						loader: 'babel-loader',
+						options: {
+							presets: ['@babel/preset-env']
+						}
+					}
+				}]
+			},
+		}))
+		.on('error', function (err) {
+			console.error('WEBPACK ERROR', err);
+			this.emit('end');
+		})
+		.pipe(uglify().on("error", notify.onError()))
+		.pipe(dest('./app/js'));
+}
+
+const buildHtml = () => {
+  return src(['./src/**.html'])
+    .pipe(fileInclude({
+      prefix:'@',
+      basepath: '@file'
+    }))
+    .pipe(htmlMin({
+      collapseWhitespace: true
+    }))
+    .pipe(dest('./app'));
+}
 
 
-const build = series(clean, resources, imgToApp, svgSprites);
+
+
 
 exports.clean = clean;
 exports.default = series(clean, parallel(fonts, htmlInclude, scripts, imgToApp, svgSprites, resources), styles, watchFiles);
-exports.build = series(clean, resources, imgToApp, svgSprites);
+
+const build = series(clean, parallel(fonts, buildHtml, buildScripts, imgToApp, svgSprites, resources), buildStyles);
+exports.build = build;
